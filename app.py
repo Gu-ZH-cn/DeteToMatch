@@ -1,12 +1,11 @@
-from flask import Flask
-import requests
+from flask import Flask, request
 import json
 
 app = Flask(__name__)
 
 @app.route("/genai/goods/prevention",methods=['POST'])
 def test_send_post():
-    json_string = requests.json.get('content')
+    json_string = request.get_json()
     if json_string == None:
         return 'false', 500
     try:

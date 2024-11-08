@@ -1,7 +1,19 @@
 import requests
 import json
 import unittest
+import numpy as np
 from unittest.mock import patch
+
+def convert_to_serializable(obj):
+
+    if isinstance(obj, np.float32):
+        return float(obj)
+    elif isinstance(obj, list):
+        return [convert_to_serializable(item) for item in obj]
+    elif isinstance(obj, dict):
+        return {key: convert_to_serializable(value) for key, value in obj.items()}
+    else:
+        return obj
 
 def send_post(url, data, customerCode, storeCode):
     '''
@@ -17,10 +29,9 @@ def send_post(url, data, customerCode, storeCode):
     url = url + '/genai/goods/prevention'
 
     # add 'the code' in configuration to the detection json result
-    content = json.loads(data)
     code = {"customerCode":customerCode,"storeCode":storeCode}
-    content.update(code)
-    content = json.dumps(content)
+    data.update(code)
+    content = json.dumps(convert_to_serializable(data))
 
     headers = {'Content-Type': 'application/json'}
     response = requests.post(url, json=content, headers=headers,timeout=10, allow_redirects=False)
@@ -53,7 +64,6 @@ class TestSendPost(unittest.TestCase):
         ## （以字典对象形式存储）检测模型的检测结果
         data = {"goodsInfo": [{"ean": [11,12],"prob": [0.3,0.8]},
                               {"ean": [11,14,15],"prob": [0.3,0.5,0.8]}]}
-        data = json.dumps(data)
         ## 配置好的一些Code
         customerCode = 'genai'
         storeCode = 'beijing'
